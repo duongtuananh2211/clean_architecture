@@ -1,14 +1,14 @@
-import { IAppAdapter } from "../adapters/IAppAdapter";
 import { IBaseController } from "./interfaces/IBaseController";
+import { Express } from "express";
 
 export default abstract class BaseController implements IBaseController {
-  app: IAppAdapter | undefined;
+  app: Express | undefined;
   prefixRoute: string | undefined;
-  constructor(app: IAppAdapter) {
+  constructor(app: Express) {
     this.setApp(app);
   }
 
-  setApp = (app: IAppAdapter) => {
+  setApp = (app: Express) => {
     this.app = app;
   };
 
@@ -24,19 +24,27 @@ export default abstract class BaseController implements IBaseController {
     this.prefixRoute = this.getPrefixRoute();
   };
 
-  get: IBaseController["get"] = (path, handler) => {
+  get: IBaseController["get"] = (path, handler, ...middlewares) => {
     const fullPath = `/${this.getPrefixRoute()}/${path}`;
 
     console.debug("path", fullPath);
 
-    this.getApp().get(fullPath, handler);
+    this.getApp().get(
+      fullPath,
+      ...middlewares.map((middleware) => middleware.handler),
+      handler
+    );
   };
 
-  post: IBaseController["post"] = (path, handler) => {
+  post: IBaseController["post"] = (path, handler, ...middlewares) => {
     const fullPath = `/${this.getPrefixRoute()}/${path}`;
 
     console.debug("path", fullPath);
 
-    this.getApp().post(fullPath, handler);
+    this.getApp().post(
+      fullPath,
+      ...middlewares.map((middleware) => middleware.handler),
+      handler
+    );
   };
 }
